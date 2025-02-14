@@ -43,7 +43,7 @@ import base64
 # Set page config first
 
 
-api_key = st.secrets(API_KEY)
+api_key = st.secrets["API_KEY"]
 
 client = OpenAI(api_key=api_key)
 
