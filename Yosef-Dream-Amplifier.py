@@ -1,4 +1,5 @@
 import streamlit as st
+# Import image using Pillow (PIL)
 from datetime import datetime
 import pytz
 import tempfile
@@ -39,12 +40,12 @@ import tempfile
 from docx import Document
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import base64
+from PIL import Image
 
 # Set page config first
 
 
-api_key = st.secrets["API_KEY"]
-
+api_key = os.getenv("API_KEY")
 client = OpenAI(api_key=api_key)
 
 # Add custom CSS for background color
@@ -187,7 +188,7 @@ def fetch_first_jungian_interpretation (dream_content, other_details, api_key):
             messages=[
             {"role": "user", "content": prompt}
             ],
-            max_completion_tokens=2000,
+            max_completion_tokens=5000,
             #temperature=0.7
         )
         # Extract and return the rewritten content
@@ -212,7 +213,7 @@ def fetch_depth_psychology_analysts (dream_content, dream_history, personal_deta
         "The ten analysts include "
         "Stephen Aizenstat, Marian Woodman, James Hillman, Marie-Louise Von Franz, Joseph Campbell, Donald Kalsched,"
         "Heinz Kohut, Donald Winnicott, Melanie Klein, and Alfred Adler."
-        "Since there are ten analysts, you should produce 10 paragaraphs, each with about 150 words."
+        "Since there are ten analysts, you should produce 10 paragaraphs, each with about 100 words."
         "Your narrative should be written in the third person. The tone should be scholarly but accessible."
         "The content should be direct and kind, but not overly emotional or personal."
         "Be specific about the depth psychology analyst's approach and how it relates to"
@@ -234,6 +235,43 @@ def fetch_depth_psychology_analysts (dream_content, dream_history, personal_deta
         )
         # Extract and return the rewritten content
         return response.choices[0].message.content
+    
+    except Exception as e:
+        # Catch and return the error message
+        return f"An error occurred: {str(e)}"
+    
+def fetch_historical_dream_analysis(dream_history, other_details, api_key):
+    
+    # Initialize OpenAI client
+    client = OpenAI(api_key=api_key)
+
+    # Define the prompt
+    prompt = (
+        "Act as a scholarly Jungian analyst. Review the dream history."
+        "Author a Jungian interpretation of the dream, focusing primarily on the dream content,"
+        "Your narrative should be written in the third person. The tone should be scholarly but accessible."
+        "The content should be direct and kind, but not overly emotional or personal.\n\n"
+        "Identify the various roles and personalities played by the dreamer in the dream history."
+        "The analysis should include but not be limited to archetypes."
+        "When you identify an archetype or personality played by the dreamer, reference the date"
+        "of the dream or the dream title, along with a brief description of the role played."
+        f"{dream_history}"
+        f"{other_details}"
+    )
+
+    try:
+        # Call the OpenAI API
+        response = client.chat.completions.create(
+            model="o3-mini",  # Using a more reliable model
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            max_completion_tokens=10000,  # Changed to max_tokens
+        )
+        # Extract and return the content
+        if response and response.choices and len(response.choices) > 0:
+            return response.choices[0].message.content
+        return "No response generated"
     
     except Exception as e:
         # Catch and return the error message
@@ -305,9 +343,78 @@ def fetch_sentiment_analysis(content):
         
     return f"The sentiment score from your dream, on a scale from -100 to +100, is {net_score:.1f}. Your dream was {message}."
 
+def fetch_word_play (content, api_key):
+    
+    # Initialize OpenAI client
+    client = OpenAI(api_key=api_key)
 
+    # Define the prompt
+    prompt = (
+        "You are a scholary expert on etymology, with a Ph.D. in analytical psychology."
+        "Extract the three most relevant or unusual words from this dream."
+        "Evaluate each, including homonyms and etymoglogy in the context of the dream."
+        "Explain why the word could be significant to the meaning of the dream or the dreamer."
+        "Write in the third person."
+        "Devote a short paragraph to each word analysis."
+        "Invest about 200 words in this exercise.\n\n"
+        f"{content}"
+    )
+
+    try:
+        # Call the OpenAI API
+        response = client.chat.completions.create(
+            model="o3-mini",
+            messages=[
+            {"role": "user", "content": prompt}
+            ],
+            max_completion_tokens=4000,
+            #temperature=0.7
+        )
+        # Extract and return the rewritten content
+        return response.choices[0].message.content
+    
+    except Exception as e:
+        # Catch and return the error message
+        return f"An error occurred: {str(e)}"
+
+def fetch_time_displacement (content, api_key):
+    
+    # Initialize OpenAI client
+    client = OpenAI(api_key=api_key)
+
+    # Define the prompt
+    prompt = (
+        "You are a scholary expert on the human construct of time, with a Ph.D. in analytical psychology."
+        "Evaluate the dream for any unusual time displacement issues, such as gaps in time,"
+        "Moving forward into the future or into the past,"
+        "Or character forms that seem illogical--for example, a parent who is younger than the dreamer."
+        "Evaluate the situation in the context of the dream."
+        "Explain why the time displacement could be significant to the meaning of the dream or the dreamer."
+        "Write in the third person."
+        "Devote a short paragraph to each word analysis."
+        "Invest about 150 words in this exercise.\n\n"
+        f"{content}"
+    )
+
+    try:
+        # Call the OpenAI API
+        response = client.chat.completions.create(
+            model="o3-mini",
+            messages=[
+            {"role": "user", "content": prompt}
+            ],
+            max_completion_tokens=4000,
+            #temperature=0.7
+        )
+        # Extract and return the rewritten content
+        return response.choices[0].message.content
+    
+    except Exception as e:
+        # Catch and return the error message
+        return f"An error occurred: {str(e)}"
 
 def fetch_emotions(content, api_key):
+
     
     # Initialize OpenAI client
     client = OpenAI(api_key=api_key)
@@ -319,7 +426,7 @@ def fetch_emotions(content, api_key):
         "Write in the third person."
         "Devote a short paragraph to each emotion."
         "Be specific about where this emotion appears in the dream."
-        "Invest about 300 words in this exercise.\n\n"
+        "Invest about 150 words in this exercise.\n\n"
         f"{content}"
     )
 
@@ -382,7 +489,7 @@ def fetch_polarities (content, api_key):
         "Light and dark, fast and slow, kind and rude, young and old,"
         "And anything else where obvious polarities exist."
         "Write in the third person. Do not apply numbers to the paragraphs."
-        "Invest about 100 words in each set of polarities.\n\n"
+        "Invest about 50 words in each set of polarities.\n\n"
         f"{content}"
     )
 
@@ -902,13 +1009,15 @@ if button_placeholder.button("Animate my dream", key="animate_button"):
         dream_title = generate_dream_title(text1, api_key)
         present_tense_dream = rewrite_in_present_tense(text1, api_key)
         first_jungian_interpretation = fetch_first_jungian_interpretation(text1, text3, api_key)
-        second_jungian_interpretation = fetch_first_jungian_interpretation(text1, text2, api_key)
+        second_jungian_interpretation = fetch_historical_dream_analysis(text2, text3, api_key)
         depth_psychology_analysts = fetch_depth_psychology_analysts (text1, text1, text3, api_key)
         collective_unconscious = fetch_collective_unconscious (text1, text1, text3, api_key)
         dominant_human_image_narrative = fetch_dominant_human_image(text1, text1, text3, api_key)
         second_living_image_narrative = fetch_second_living_image(text1, text1, text3, api_key)        
         dominant_non_human_image_narrative = fetch_dominant_non_human_image(text1, text1, text3, api_key)
         sentiment_score = fetch_sentiment_analysis (text1)
+        word_play = fetch_word_play (text1, api_key)
+        time_displacement = fetch_time_displacement (text1, api_key)
         emotions = fetch_emotions (text1, api_key)
         unusual_image = fetch_striking_image (text1, api_key)
         jewish_considerations = fetch_hebrew_scripture(text1,api_key)
@@ -982,6 +1091,19 @@ if button_placeholder.button("Animate my dream", key="animate_button"):
         paragraph_format = paragraph.paragraph_format
         paragraph_format.left_indent = docx.shared.Inches(0.25)
 
+        # Add results from word plays
+        doc.add_heading("Play on Words, Etymology, and Similar", level=1)
+
+        paragraph = doc.add_paragraph(word_play)
+        paragraph_format = paragraph.paragraph_format
+        paragraph_format.left_indent = docx.shared.Inches(0.25)
+
+        # Add results from word plays
+        doc.add_heading("Time Displacement and Anachronisms", level=1)
+
+        paragraph = doc.add_paragraph(time_displacement)
+        paragraph_format = paragraph.paragraph_format
+        paragraph_format.left_indent = docx.shared.Inches(0.25)
 
         # Add results from sentiment analysis
         doc.add_heading("Sentiment", level=1)
